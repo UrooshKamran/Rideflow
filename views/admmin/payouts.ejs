@@ -1,0 +1,55 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-money-check-alt"></i> Driver Payouts</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="card">
+        <% if (payouts.length === 0) { %>
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <p>No pending payouts. All drivers have been paid!</p>
+            </div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Driver</th>
+                    <th>Email</th>
+                    <th>Pending Trips</th>
+                    <th>Amount to Pay</th>
+                    <th>Wallet Balance</th>
+                    <th>Last Payout</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% payouts.forEach(p => { %>
+            <tr>
+                <td><strong><%= p.full_name %></strong></td>
+                <td><%= p.email %></td>
+                <td><%= p.pending_count %> trips</td>
+                <td><strong style="color:#10b981;">
+                    Rs. <%= parseFloat(p.pending_total).toFixed(2) %>
+                </strong></td>
+                <td>Rs. <%= parseFloat(p.wallet_balance).toFixed(2) %></td>
+                <td>
+                    <%= p.last_payout_date 
+                        ? new Date(p.last_payout_date).toLocaleDateString() 
+                        : 'Never' %>
+                </td>
+                <td>
+                    <form action="/admin/payouts/<%= p.driver_id %>/approve" method="POST">
+                        <button class="btn btn-success btn-sm">
+                            <i class="fas fa-paper-plane"></i> Approve Payout
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>

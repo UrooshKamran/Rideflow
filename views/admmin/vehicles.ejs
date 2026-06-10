@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-car"></i> Vehicle Management</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="card">
+        <% if (vehicles.length === 0) { %>
+            <div class="empty-state">
+                <i class="fas fa-car"></i>
+                <p>No vehicles registered yet.</p>
+            </div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Driver</th><th>Make</th><th>Model</th>
+                    <th>Year</th><th>Color</th><th>Plate</th>
+                    <th>Type</th><th>Status</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% vehicles.forEach(v => { %>
+            <tr>
+                <td><%= v.vehicle_id %></td>
+                <td><%= v.driver_name %></td>
+                <td><%= v.make %></td>
+                <td><%= v.model %></td>
+                <td><%= v.year %></td>
+                <td><%= v.color %></td>
+                <td><strong><%= v.license_plate %></strong></td>
+                <td><span class="badge badge-<%= v.vehicle_type %>"><%= v.vehicle_type %></span></td>
+                <td><span class="badge badge-<%= v.verify_status %>"><%= v.verify_status %></span></td>
+                <td style="display:flex;gap:.4rem;flex-wrap:wrap;">
+                    <% if (v.verify_status !== 'verified') { %>
+                    <form action="/admin/vehicles/<%= v.vehicle_id %>/verify" method="POST">
+                        <input type="hidden" name="status" value="verified"/>
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="fas fa-check"></i> Verify
+                        </button>
+                    </form>
+                    <% } %>
+                    <% if (v.verify_status !== 'rejected') { %>
+                    <form action="/admin/vehicles/<%= v.vehicle_id %>/verify" method="POST">
+                        <input type="hidden" name="status" value="rejected"/>
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                    <% } %>
+                    <% if (v.verify_status === 'verified') { %>
+                        <span style="color:#10b981;font-size:.85rem;">
+                            <i class="fas fa-check-circle"></i> Verified
+                        </span>
+                    <% } %>
+                </td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>

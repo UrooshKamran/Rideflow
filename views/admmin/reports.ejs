@@ -1,0 +1,116 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-chart-line"></i> Reports & Analytics</h1>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="card">
+        <form action="/admin/reports" method="GET" class="auth-form" style="flex-direction:row;align-items:flex-end;gap:1rem;">
+            <div class="form-group" style="margin:0;">
+                <label>From</label>
+                <input type="date" name="from" value="<%= dateFrom %>"/>
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label>To</label>
+                <input type="date" name="to" value="<%= dateTo %>"/>
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+
+    <!-- Summary -->
+    <div class="stats-grid">
+        <div class="stat-card stat-green">
+            <i class="fas fa-money-bill-wave"></i>
+            <div><h3>Total Revenue</h3>
+            <p>Rs. <%= revenue && revenue.total ? parseFloat(revenue.total).toFixed(2) : '0.00' %></p></div>
+        </div>
+        <div class="stat-card stat-blue">
+            <i class="fas fa-receipt"></i>
+            <div><h3>Total Transactions</h3>
+            <p><%= revenue ? revenue.count : 0 %></p></div>
+        </div>
+        <div class="stat-card stat-red">
+            <i class="fas fa-undo"></i>
+            <div><h3>Total Refunds</h3>
+            <p>Rs. <%= refunds && refunds.total ? parseFloat(refunds.total).toFixed(2) : '0.00' %></p></div>
+        </div>
+        <div class="stat-card stat-orange">
+            <i class="fas fa-exclamation-circle"></i>
+            <div><h3>Refund Count</h3>
+            <p><%= refunds ? refunds.count : 0 %></p></div>
+        </div>
+    </div>
+
+    <!-- Driver Earnings Report -->
+    <div class="card">
+        <div class="card-header"><h2>Driver Earnings Report</h2></div>
+        <% if (driverEarnings.length === 0) { %>
+            <div class="empty-state"><p>No earnings data for this period.</p></div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Driver</th><th>Trips</th><th>Gross Earnings</th>
+                    <th>Commission (20%)</th><th>Net Earnings</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% driverEarnings.forEach(d => { %>
+            <tr>
+                <td><%= d.full_name %></td>
+                <td><%= d.trips %></td>
+                <td>Rs. <%= parseFloat(d.gross).toFixed(2) %></td>
+                <td>Rs. <%= parseFloat(d.commission).toFixed(2) %></td>
+                <td><strong>Rs. <%= parseFloat(d.net).toFixed(2) %></strong></td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+
+    <!-- Trips Per Driver -->
+    <div class="card">
+        <div class="card-header"><h2>Trips Completed Per Driver</h2></div>
+        <% if (tripsPerDriver.length === 0) { %>
+            <div class="empty-state"><p>No trip data available.</p></div>
+        <% } else { %>
+        <canvas id="tripsChart" height="120"></canvas>
+        <table class="table" style="margin-top:1rem;">
+            <thead><tr><th>Driver</th><th>Total Trips</th><th>Avg Rating</th></tr></thead>
+            <tbody>
+            <% tripsPerDriver.forEach(d => { %>
+            <tr>
+                <td><%= d.full_name %></td>
+                <td><%= d.total_trips %></td>
+                <td>⭐ <%= parseFloat(d.avg_rating).toFixed(1) %></td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+
+<script>
+<% if (tripsPerDriver.length > 0) { %>
+const tripLabels = <%- JSON.stringify(tripsPerDriver.map(d => d.full_name)) %>;
+const tripData   = <%- JSON.stringify(tripsPerDriver.map(d => d.total_trips)) %>;
+new Chart(document.getElementById('tripsChart'), {
+    type: 'bar',
+    data: {
+        labels: tripLabels,
+        datasets: [{
+            label: 'Completed Trips',
+            data: tripData,
+            backgroundColor: 'rgba(16,185,129,0.7)',
+            borderRadius: 6
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+});
+<% } %>
+</script>
+<%- include('../partials/footer') %>

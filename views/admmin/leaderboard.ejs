@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-trophy"></i> Driver Leaderboard</h1>
+    </div>
+
+    <% if (typeof leaderboard !== 'undefined' && leaderboard.length > 0) { %>
+    <!-- Group by city -->
+    <%
+        const cities = [...new Set(leaderboard.map(d => d.city))];
+    %>
+    <% cities.forEach(city => { %>
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-map-marker-alt"></i> <%= city %></h2>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Rank</th><th>Driver</th><th>Rating</th>
+                        <th>Total Trips</th><th>Availability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <% leaderboard.filter(d => d.city === city).forEach(d => { %>
+                <tr>
+                    <td>
+                        <% if (d.city_rank == 1) { %>
+                            🥇
+                        <% } else if (d.city_rank == 2) { %>
+                            🥈
+                        <% } else if (d.city_rank == 3) { %>
+                            🥉
+                        <% } else { %>
+                            #<%= d.city_rank %>
+                        <% } %>
+                    </td>
+                    <td><strong><%= d.full_name %></strong></td>
+                    <td>⭐ <%= parseFloat(d.avg_rating).toFixed(1) %></td>
+                    <td><%= d.total_trips %></td>
+                    <td><span class="badge badge-<%= d.avail_status %>"><%= d.avail_status %></span></td>
+                </tr>
+                <% }) %>
+                </tbody>
+            </table>
+        </div>
+    <% }) %>
+    <% } else { %>
+        <div class="card">
+            <div class="empty-state">
+                <i class="fas fa-trophy"></i>
+                <p>No leaderboard data yet. Drivers need to complete rides first.</p>
+            </div>
+        </div>
+    <% } %>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-users"></i> User Management</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Name</th><th>Email</th><th>Phone</th>
+                    <th>Role</th><th>Status</th><th>Registered</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% users.forEach(u => { %>
+            <tr>
+                <td><%= u.user_id %></td>
+                <td><%= u.full_name %></td>
+                <td><%= u.email %></td>
+                <td><%= u.phone %></td>
+                <td><span class="badge badge-<%= u.role %>"><%= u.role %></span></td>
+                <td><span class="badge badge-<%= u.acc_status %>"><%= u.acc_status %></span></td>
+                <td><%= new Date(u.registration_date).toLocaleDateString() %></td>
+                <td>
+                    <form action="/admin/users/<%= u.user_id %>/status" method="POST" style="display:inline;">
+                        <% if (u.acc_status === 'active') { %>
+                            <input type="hidden" name="status" value="suspended"/>
+                            <button class="btn btn-sm btn-danger">Suspend</button>
+                        <% } else if (u.acc_status === 'suspended') { %>
+                            <input type="hidden" name="status" value="active"/>
+                            <button class="btn btn-sm btn-success">Activate</button>
+                        <% } else { %>
+                            <input type="hidden" name="status" value="active"/>
+                            <button class="btn btn-sm btn-success">Unban</button>
+                        <% } %>
+                    </form>
+                    <% if (u.acc_status !== 'banned') { %>
+                    <form action="/admin/users/<%= u.user_id %>/status" method="POST" style="display:inline;">
+                        <input type="hidden" name="status" value="banned"/>
+                        <button class="btn btn-sm btn-danger">Ban</button>
+                    </form>
+                    <% } %>
+                </td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<%- include('../partials/footer') %>

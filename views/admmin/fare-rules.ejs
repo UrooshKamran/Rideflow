@@ -1,0 +1,84 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-tags"></i> Fare Rules</h1>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <!-- Add/Edit Form -->
+    <div class="card">
+        <div class="card-header"><h2>Add / Update Fare Rule</h2></div>
+        <form action="/admin/fare-rules" method="POST" class="auth-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" name="city" required placeholder="Karachi"/>
+                </div>
+                <div class="form-group">
+                    <label>Vehicle Type</label>
+                    <select name="vehicle_type">
+                        <option value="economy">Economy</option>
+                        <option value="premium">Premium</option>
+                        <option value="bike">Bike</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Base Rate (Rs.)</label>
+                    <input type="number" name="base_rate" step="0.01" required placeholder="50"/>
+                </div>
+                <div class="form-group">
+                    <label>Per KM Rate (Rs.)</label>
+                    <input type="number" name="per_km_rate" step="0.01" required placeholder="20"/>
+                </div>
+                <div class="form-group">
+                    <label>Per Minute Rate (Rs.)</label>
+                    <input type="number" name="per_min_rate" step="0.01" required placeholder="2"/>
+                </div>
+                <div class="form-group">
+                    <label>Surge Multiplier</label>
+                    <input type="number" name="surge_multi" step="0.1" min="1" value="1.0" placeholder="1.0"/>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Fare Rule</button>
+        </form>
+    </div>
+
+    <!-- Existing Rules -->
+    <div class="card">
+        <div class="card-header"><h2>Existing Rules</h2></div>
+        <% if (rules.length === 0) { %>
+            <div class="empty-state"><p>No fare rules configured yet.</p></div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>City</th><th>Type</th><th>Base Rate</th>
+                    <th>Per KM</th><th>Per Min</th><th>Surge</th>
+                    <th>Calculated Example (5km, 15min)</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% rules.forEach(r => { %>
+            <tr>
+                <td><%= r.city %></td>
+                <td><span class="badge badge-<%= r.vehicle_type %>"><%= r.vehicle_type %></span></td>
+                <td>Rs. <%= parseFloat(r.base_rate).toFixed(2) %></td>
+                <td>Rs. <%= parseFloat(r.per_km_rate).toFixed(2) %></td>
+                <td>Rs. <%= parseFloat(r.per_min_rate).toFixed(2) %></td>
+                <td><%= parseFloat(r.surge_multi).toFixed(1) %>x</td>
+                <td>Rs. <%=
+                    ((parseFloat(r.base_rate) +
+                     (parseFloat(r.per_km_rate) * 5) +
+                     (parseFloat(r.per_min_rate) * 15)) *
+                     parseFloat(r.surge_multi)).toFixed(2)
+                %></td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>

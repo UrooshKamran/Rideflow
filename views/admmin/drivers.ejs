@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-id-card"></i> Driver Management</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Name</th><th>Email</th><th>Phone</th>
+                    <th>Rating</th><th>Trips</th><th>Vehicles</th>
+                    <th>Verify Status</th><th>Availability</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% drivers.forEach(d => { %>
+            <tr>
+                <td><%= d.driver_id %></td>
+                <td><%= d.full_name %></td>
+                <td><%= d.email %></td>
+                <td><%= d.phone %></td>
+                <td>⭐ <%= parseFloat(d.avg_rating).toFixed(1) %></td>
+                <td><%= d.total_trips %></td>
+                <td><%= d.vehicle_count %></td>
+                <td><span class="badge badge-<%= d.verify_status %>"><%= d.verify_status %></span></td>
+                <td><span class="badge badge-<%= d.avail_status %>"><%= d.avail_status %></span></td>
+                <td>
+                    <% if (d.verify_status !== 'verified') { %>
+                        <form action="/admin/drivers/<%= d.driver_id %>/verify" method="POST" style="display:inline;">
+                            <input type="hidden" name="status" value="verified"/>
+                            <button class="btn btn-sm btn-success">Verify</button>
+                        </form>
+                    <% } %>
+                    <% if (d.verify_status !== 'rejected') { %>
+                        <form action="/admin/drivers/<%= d.driver_id %>/verify" method="POST" style="display:inline;">
+                            <input type="hidden" name="status" value="rejected"/>
+                            <button class="btn btn-sm btn-danger">Reject</button>
+                        </form>
+                    <% } %>
+                </td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<%- include('../partials/footer') %>
