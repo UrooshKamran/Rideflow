@@ -1,0 +1,121 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-map-marker-alt"></i> Book a Ride</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="card">
+        <form action="/rider/book" method="POST" class="auth-form" id="bookForm" novalidate>
+            <h3>Pickup Location</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pickup Address</label>
+                    <input type="text" name="pickup_address" id="pickup_address"
+                           required minlength="3" placeholder="House 5, Block A"/>
+                    <small class="field-error" id="err_pickup_address"></small>
+                </div>
+                <div class="form-group">
+                    <label>Pickup City</label>
+                    <input type="text" name="pickup_city" id="pickup_city"
+                           required placeholder="Karachi"/>
+                    <small class="field-error" id="err_pickup_city"></small>
+                </div>
+            </div>
+
+            <h3>Drop-off Location</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Drop-off Address</label>
+                    <input type="text" name="dropoff_address" id="dropoff_address"
+                           required minlength="3" placeholder="Office Tower, Main Blvd"/>
+                    <small class="field-error" id="err_dropoff_address"></small>
+                </div>
+                <div class="form-group">
+                    <label>Drop-off City</label>
+                    <input type="text" name="dropoff_city" id="dropoff_city"
+                           required placeholder="Karachi"/>
+                    <small class="field-error" id="err_dropoff_city"></small>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Vehicle Type</label>
+                    <select name="vehicle_type" required>
+                        <option value="economy">🚗 Economy</option>
+                        <option value="premium">🚙 Premium</option>
+                        <option value="bike">🏍️ Bike</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Promo Code (Optional)</label>
+                    <select name="promo_code">
+                        <option value="">-- No Promo --</option>
+                        <% promos.forEach(p => { %>
+                            <option value="<%= p.code %>">
+                                <%= p.code %> — <%= p.discount_pct %>% off
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Schedule For (Optional — leave blank for now)</label>
+                <input type="datetime-local" name="scheduled_at" id="scheduled_at"/>
+                <small class="field-error" id="err_scheduled"></small>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">
+                <i class="fas fa-search"></i> Find a Driver
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+.field-error { color: #ef4444; font-size: .78rem; margin-top: .2rem; display: block; }
+input.invalid { border-color: #ef4444 !important; }
+</style>
+
+<script>
+document.getElementById('bookForm').addEventListener('submit', function(e) {
+    let valid = true;
+
+    function showError(id, msg) {
+        document.getElementById(id).textContent = msg;
+        document.getElementById(id).previousElementSibling.classList.add('invalid');
+    }
+    function clearError(id) {
+        document.getElementById(id).textContent = '';
+        document.getElementById(id).previousElementSibling.classList.remove('invalid');
+    }
+
+    const pickupAddr  = document.getElementById('pickup_address').value.trim();
+    const pickupCity  = document.getElementById('pickup_city').value.trim();
+    const dropoffAddr = document.getElementById('dropoff_address').value.trim();
+    const dropoffCity = document.getElementById('dropoff_city').value.trim();
+
+    if (pickupAddr.length < 3)  { showError('err_pickup_address',  'Enter a valid pickup address.');   valid = false; } else clearError('err_pickup_address');
+    if (pickupCity.length < 2)  { showError('err_pickup_city',     'Enter a valid pickup city.');      valid = false; } else clearError('err_pickup_city');
+    if (dropoffAddr.length < 3) { showError('err_dropoff_address', 'Enter a valid dropoff address.');  valid = false; } else clearError('err_dropoff_address');
+    if (dropoffCity.length < 2) { showError('err_dropoff_city',    'Enter a valid dropoff city.');     valid = false; } else clearError('err_dropoff_city');
+
+    // Same location check
+    if (pickupAddr.toLowerCase() === dropoffAddr.toLowerCase() &&
+        pickupCity.toLowerCase() === dropoffCity.toLowerCase()) {
+        showError('err_dropoff_address', 'Pickup and dropoff cannot be the same location.');
+        valid = false;
+    }
+
+    // Scheduled time must be future
+    const sched = document.getElementById('scheduled_at').value;
+    if (sched && new Date(sched) <= new Date()) {
+        showError('err_scheduled', 'Scheduled time must be in the future.');
+        valid = false;
+    } else clearError('err_scheduled');
+
+    if (!valid) e.preventDefault();
+});
+</script>
+<%- include('../partials/footer') %>
