@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Rider Dashboard</h1>
+        <a href="/rider/book" class="btn btn-primary"><i class="fas fa-plus"></i> Book a Ride</a>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-blue">
+            <i class="fas fa-wallet"></i>
+            <div>
+                <h3>Wallet Balance</h3>
+                <p>Rs. <%= wallet ? parseFloat(wallet.balance).toFixed(2) : '0.00' %></p>
+            </div>
+        </div>
+        <div class="stat-card stat-green">
+            <i class="fas fa-car"></i>
+            <div>
+                <h3>Recent Rides</h3>
+                <p><%= recentRides.length %> rides</p>
+            </div>
+        </div>
+        <div class="stat-card stat-orange">
+            <i class="fas fa-star"></i>
+            <div>
+                <h3>Quick Actions</h3>
+                <p><a href="/rider/book" style="color:white;">Book Now →</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Rides -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Rides</h2>
+            <a href="/rider/history" class="btn btn-sm">View All</a>
+        </div>
+        <% if (recentRides.length === 0) { %>
+            <div class="empty-state">
+                <i class="fas fa-car-side"></i>
+                <p>No rides yet. <a href="/rider/book">Book your first ride!</a></p>
+            </div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>From</th><th>To</th><th>Driver</th><th>Status</th><th>Fare</th><th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% recentRides.forEach(ride => { %>
+                <tr>
+                    <td><%= ride.ride_id %></td>
+                    <td><%= ride.pickup_address || ride.pickup_city %></td>
+                    <td><%= ride.dropoff_address || 'N/A' %></td>
+                    <td>
+                        <% if (ride.status === 'requested') { %>
+                            <span style="color:#f59e0b;"> Searching...</span>
+                        <% } else { %>
+                            <%= ride.driver_name || 'N/A' %>
+                        <% } %>
+                    </td>
+                    <td><span class="badge badge-<%= ride.status %>"><%= ride.status %></span></td>
+                    <td>Rs. <%= ride.fare ? parseFloat(ride.fare).toFixed(2) : '—' %></td>
+                    <td><%= new Date(ride.created_at).toLocaleDateString() %></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>

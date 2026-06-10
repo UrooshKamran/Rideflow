@@ -1,0 +1,101 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-history"></i> Ride History</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="card">
+        <% if (rides.length === 0) { %>
+            <div class="empty-state">
+                <i class="fas fa-car-side"></i>
+                <p>No rides found. <a href="/rider/book">Book your first ride!</a></p>
+            </div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>From</th><th>To</th><th>Driver</th>
+                    <th>Status</th><th>Fare</th><th>Payment</th><th>Date</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% rides.forEach(ride => { %>
+                <tr>
+                    <td><%= ride.ride_id %></td>
+                    <td><%= ride.pickup_address %> <small>(<%= ride.pickup_city %>)</small></td>
+                    <td><%= ride.dropoff_address %></td>
+                    <td><%= ride.driver_name || 'N/A' %></td>
+                    <td>
+                    <% if (ride.status === 'requested') { %>
+                        <span style="color:#f59e0b;"> Searching...</span>
+                    <% } else { %>
+                        <%= ride.driver_name || 'N/A' %>
+                    <% } %>
+                    </td>
+                    <td><span class="badge badge-<%= ride.status %>"><%= ride.status %></span></td>
+                    <td>Rs. <%= ride.fare ? parseFloat(ride.fare).toFixed(2) : '—' %></td>
+                    <td>
+                        <% if (ride.pay_status === 'paid') { %>
+                            <span class="badge badge-paid">Paid ✓</span>
+                            <% if (ride.discount_appld > 0) { %>
+                                <br/><small class="text-green">-Rs.<%= parseFloat(ride.discount_appld).toFixed(2) %> discount</small>
+                            <% } %>
+                        <% } else if (ride.pay_status === 'pending') { %>
+                            <span class="badge badge-pending">Pending</span>
+                        <% } else { %>
+                            <span>—</span>
+                        <% } %>
+                    </td>
+                    <td><%= new Date(ride.created_at).toLocaleDateString() %></td>
+                    <td>
+                        <%
+                            const needsPayment = ride.fare &&
+                                (ride.pay_status === 'pending' || !ride.pay_status) &&
+                                (ride.status === 'completed' || ride.status === 'in_progress' || ride.status === 'accepted');
+                            const canRate = ride.status === 'completed' &&
+                                ride.pay_status === 'paid' &&
+                                ride.driver_user_id;
+                        %>
+
+                        <!-- Pay Now Button -->
+                        <% if (needsPayment) { %>
+                            <a href="/rider/pay/<%= ride.ride_id %>" class="btn btn-sm btn-primary">
+                                <i class="fas fa-credit-card"></i> Pay Now
+                            </a>
+                        <% } %>
+
+                        <!-- Rate Button -->
+                        <% if (canRate) { %>
+                            <button onclick="document.getElementById('rate-<%= ride.ride_id %>').style.display='block'"
+                                    class="btn btn-sm btn-outline">
+                                <i class="fas fa-star"></i> Rate
+                            </button>
+                            <div id="rate-<%= ride.ride_id %>" style="display:none;" class="rate-form">
+                                <form action="/rider/rate/<%= ride.ride_id %>" method="POST">
+                                    <input type="hidden" name="rated_user_id" value="<%= ride.driver_user_id %>"/>
+                                    <select name="score">
+                                        <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                                        <option value="4">⭐⭐⭐⭐ Good</option>
+                                        <option value="3">⭐⭐⭐ Average</option>
+                                        <option value="2">⭐⭐ Poor</option>
+                                        <option value="1">⭐ Terrible</option>
+                                    </select>
+                                    <input type="text" name="comment" placeholder="Comment (optional)"/>
+                                    <button type="submit" class="btn btn-sm btn-primary">Submit</button>
+                                </form>
+                            </div>
+                        <% } %>
+
+                        <!-- Nothing to show -->
+                        <% if (!needsPayment && !canRate) { %>
+                            <span class="text-muted">—</span>
+                        <% } %>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>
