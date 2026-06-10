@@ -1,0 +1,79 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-route"></i> Trip History</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="card">
+        <% if (trips.length === 0) { %>
+            <div class="empty-state">
+                <i class="fas fa-car-side"></i>
+                <p>No trips yet. Accept rides to get started!</p>
+            </div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Rider</th><th>From</th><th>To</th>
+                    <th>Distance</th><th>Duration</th><th>Gross</th>
+                    <th>Commission</th><th>Net</th><th>Status</th><th>Date</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% trips.forEach(trip => { %>
+                <tr>
+                    <td>#<%= trip.ride_id %></td>
+                    <td><%= trip.rider_name %></td>
+                    <td><%= trip.pickup_address %> <small>(<%= trip.pickup_city %>)</small></td>
+                    <td><%= trip.dropoff_address %></td>
+                    <td><%= trip.distance ? trip.distance + ' km' : '—' %></td>
+                    <td><%= trip.duration ? trip.duration + ' min' : '—' %></td>
+                    <td>Rs. <%= trip.gross_amount ? parseFloat(trip.gross_amount).toFixed(2) : '—' %></td>
+                    <td>Rs. <%= trip.commission ? parseFloat(trip.commission).toFixed(2) : '—' %></td>
+                    <td><strong>Rs. <%= trip.net_amount ? parseFloat(trip.net_amount).toFixed(2) : '—' %></strong></td>
+                    <td><span class="badge badge-<%= trip.status %>"><%= trip.status %></span></td>
+                    <td><%= new Date(trip.created_at).toLocaleDateString() %></td>
+                    <td>
+                        <!-- Complete ride if in_progress -->
+                        <% if (trip.status === 'in_progress' || trip.status === 'accepted' || trip.status === 'driver_en_route') { %>
+                        <button onclick="document.getElementById('complete-<%= trip.ride_id %>').style.display='block'"
+                                class="btn btn-sm btn-success">Complete</button>
+                        <div id="complete-<%= trip.ride_id %>" style="display:none;" class="rate-form">
+                            <form action="/driver/complete/<%= trip.ride_id %>" method="POST">
+                                <input type="number" name="distance" step="0.1" placeholder="Distance (km)" required/>
+                                <input type="number" name="duration" placeholder="Duration (min)" required/>
+                                <button type="submit" class="btn btn-sm btn-primary">Confirm</button>
+                            </form>
+                        </div>
+                        <% } %>
+
+                        <!-- Rate rider after completion -->
+                        <% if (trip.status === 'completed' && trip.rider_user_id) { %>
+                        <button onclick="document.getElementById('rate-rider-<%= trip.ride_id %>').style.display='block'"
+                                class="btn btn-sm btn-outline">
+                            <i class="fas fa-star"></i> Rate Rider
+                        </button>
+                        <div id="rate-rider-<%= trip.ride_id %>" style="display:none;" class="rate-form">
+                            <form action="/driver/rate/<%= trip.ride_id %>" method="POST">
+                                <input type="hidden" name="rated_user_id" value="<%= trip.rider_user_id %>"/>
+                                <select name="score">
+                                    <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                                    <option value="4">⭐⭐⭐⭐ Good</option>
+                                    <option value="3">⭐⭐⭐ Average</option>
+                                    <option value="2">⭐⭐ Poor</option>
+                                    <option value="1">⭐ Terrible</option>
+                                </select>
+                                <input type="text" name="comment" placeholder="Comment (optional)"/>
+                                <button type="submit" class="btn btn-sm btn-primary">Submit</button>
+                            </form>
+                        </div>
+                        <% } %>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>

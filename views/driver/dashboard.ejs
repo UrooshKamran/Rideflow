@@ -1,0 +1,189 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-steering-wheel"></i> Driver Dashboard</h1>
+        <% if (driver) { %>
+        <form action="/driver/toggle-status" method="POST">
+            <button type="submit" class="btn <%= driver.avail_status === 'online' ? 'btn-danger' : 'btn-success' %>">
+                <i class="fas fa-power-off"></i>
+                <%= driver.avail_status === 'online' ? 'Go Offline' : 'Go Online' %>
+            </button>
+        </form>
+        <% } %>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <% if (driver) { %>
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-<%= driver.avail_status === 'online' ? 'green' : driver.avail_status === 'on_trip' ? 'orange' : 'red' %>">
+            <i class="fas fa-circle"></i>
+            <div><h3>Status</h3><p><%= driver.avail_status.toUpperCase() %></p></div>
+        </div>
+        <div class="stat-card stat-blue">
+            <i class="fas fa-star"></i>
+            <div><h3>Rating</h3><p><%= parseFloat(driver.avg_rating).toFixed(1) %> / 5.0</p></div>
+        </div>
+        <div class="stat-card stat-orange">
+            <i class="fas fa-route"></i>
+            <div><h3>Total Trips</h3><p><%= driver.total_trips %></p></div>
+        </div>
+        <div class="stat-card stat-green">
+            <i class="fas fa-wallet"></i>
+            <div><h3>Wallet</h3><p>Rs. <%= wallet ? parseFloat(wallet.balance).toFixed(2) : '0.00' %></p></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-money-check-alt"></i> Payout Center</h2>
+        </div>
+        <div class="card-body">
+            <p>Request a payout and track pending transfers from a dedicated page.</p>
+            <a href="/driver/payouts" class="btn btn-outline btn-sm">Go to Payouts</a>
+        </div>
+    </div>
+
+    <!-- Verification Warning -->
+    <% if (driver.verify_status !== 'verified') { %>
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-triangle"></i>
+        Your driver profile is <strong><%= driver.verify_status %></strong>. 
+        You cannot accept rides until admin verifies your account.
+        <a href="/driver/profile" style="color:inherit;font-weight:700;"> View Profile →</a>
+    </div>
+    <% } %>
+
+    <!-- Active Rides (in progress) -->
+    <% if (activeRides.length > 0) { %>
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-car-side text-green"></i> Active Ride</h2>
+        </div>
+        <% activeRides.forEach(ride => { %>
+        <div class="ride-request-card" style="border-left:4px solid #10b981;">
+            <div class="ride-info">
+                <p><strong>Rider:</strong> <%= ride.rider_name %></p>
+                <p><i class="fas fa-map-marker-alt text-green"></i> <strong>From:</strong> <%= ride.pickup_address %>, <%= ride.pickup_city %></p>
+                <p><i class="fas fa-flag text-red"></i> <strong>To:</strong> <%= ride.dropoff_address %></p>
+                <p><strong>Current Status:</strong> <span class="badge badge-<%= ride.status %>"><%= ride.status %></span></p>
+            </div>
+            <div class="ride-actions" style="flex-direction:column;gap:.5rem;">
+
+                <!-- Status Progression Buttons -->
+                <% if (ride.status === 'accepted') { %>
+                <form action="/driver/status/<%= ride.ride_id %>" method="POST">
+                    <input type="hidden" name="new_status" value="driver_en_route"/>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-car"></i> I'm En Route
+                    </button>
+                </form>
+                <% } %>
+
+                <% if (ride.status === 'driver_en_route') { %>
+                <form action="/driver/status/<%= ride.ride_id %>" method="POST">
+                    <input type="hidden" name="new_status" value="in_progress"/>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-play"></i> Start Ride
+                    </button>
+                </form>
+                <% } %>
+
+                <!-- Complete Ride -->
+                <% if (ride.status === 'in_progress') { %>
+                <button onclick="document.getElementById('complete-<%= ride.ride_id %>').style.display='block'"
+                        class="btn btn-success btn-sm">
+                    <i class="fas fa-check-circle"></i> Complete Ride
+                </button>
+                <div id="complete-<%= ride.ride_id %>" style="display:none;" class="rate-form">
+                    <form action="/driver/complete/<%= ride.ride_id %>" method="POST">
+                        <div class="form-group">
+                            <label>Distance (km)</label>
+                            <input type="number" name="distance" step="0.1" min="0.1" required placeholder="e.g. 5.2"/>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" name="duration" min="1" required placeholder="e.g. 20"/>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm">Confirm Complete</button>
+                    </form>
+                </div>
+                <% } %>
+
+            </div>
+        </div>
+        <% }) %>
+    </div>
+    <% } %>
+
+    <!-- Incoming Ride Requests -->
+    <div class="card">
+        <div class="card-header"><h2>Incoming Ride Requests</h2></div>
+        <% if (pending.length === 0) { %>
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <p><%= driver.avail_status !== 'online' ? 'Go online to receive ride requests.' : 'No pending requests right now.' %></p>
+            </div>
+        <% } else { %>
+        <% pending.forEach(ride => { %>
+        <div class="ride-request-card">
+            <div class="ride-info">
+                <p><strong>Rider:</strong> <%= ride.rider_name %></p>
+                <p><i class="fas fa-map-marker-alt text-green"></i> <strong>From:</strong> <%= ride.pickup_address %>, <%= ride.pickup_city %></p>
+                <p><i class="fas fa-flag text-red"></i> <strong>To:</strong> <%= ride.dropoff_address %></p>
+                <% if (ride.requested_vehicle_type) { %>
+                <p><strong>Vehicle Type:</strong> <span class="badge badge-<%= ride.requested_vehicle_type %>"><%= ride.requested_vehicle_type %></span></p>
+                <% } %>
+                <p><small>Requested: <%= new Date(ride.created_at).toLocaleString() %></small></p>
+            </div>
+            <div class="ride-actions">
+                <form action="/driver/accept/<%= ride.ride_id %>" method="POST">
+                    <button class="btn btn-success"><i class="fas fa-check"></i> Accept</button>
+                </form>
+                <form action="/driver/reject/<%= ride.ride_id %>" method="POST">
+                    <button class="btn btn-danger"><i class="fas fa-times"></i> Reject</button>
+                </form>
+            </div>
+        </div>
+        <% }) %>
+        <% } %>
+    </div>
+
+    <!-- Recent Earnings -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Earnings</h2>
+            <a href="/driver/earnings" class="btn btn-sm">View All</a>
+        </div>
+        <% if (recentEarnings.length === 0) { %>
+            <div class="empty-state"><p>No earnings yet.</p></div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr><th>Ride #</th><th>Gross</th><th>Commission</th><th>Net Earned</th><th>Bank Transfer</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+            <% recentEarnings.forEach(e => { %>
+            <tr>
+                <td>#<%= e.ride_id %></td>
+                <td>Rs. <%= parseFloat(e.gross_amount).toFixed(2) %></td>
+                <td>Rs. <%= parseFloat(e.commission).toFixed(2) %></td>
+                <td><strong>Rs. <%= parseFloat(e.net_amount).toFixed(2) %></strong></td>
+                <td>
+                    <% if (e.payout_status === 'pending') { %>
+                        <span class="badge badge-pending">⏳ Awaiting Transfer</span>
+                    <% } else { %>
+                        <span class="badge badge-paid">✓ Transferred</span>
+                    <% } %>
+                </td>
+                <td><%= new Date(e.earned_at).toLocaleDateString() %></td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+    <% } else { %>
+        <div class="alert alert-error">Driver profile not found. Please contact admin.</div>
+    <% } %>
+</div>
+<%- include('../partials/footer') %>

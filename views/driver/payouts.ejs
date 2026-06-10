@@ -1,0 +1,77 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-money-bill-wave"></i> Payout Center</h1>
+        <a href="/driver/earnings" class="btn btn-outline btn-sm">View Earnings</a>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <div class="stats-grid">
+        <div class="stat-card stat-green">
+            <i class="fas fa-wallet"></i>
+            <div><h3>Current Balance</h3>
+            <p>Rs. <%= wallet ? parseFloat(wallet.balance).toFixed(2) : '0.00' %></p></div>
+        </div>
+        <div class="stat-card stat-blue">
+            <i class="fas fa-hand-holding-usd"></i>
+            <div><h3>Pending Payouts</h3>
+            <p><%= pendingSummary && pendingSummary.pending_count ? pendingSummary.pending_count : 0 %> items</p></div>
+        </div>
+        <div class="stat-card stat-orange">
+            <i class="fas fa-coins"></i>
+            <div><h3>Pending Total</h3>
+            <p>Rs. <%= pendingSummary && pendingSummary.pending_total ? parseFloat(pendingSummary.pending_total).toFixed(2) : '0.00' %></p></div>
+        </div>
+        <div class="stat-card stat-purple">
+            <i class="fas fa-star"></i>
+            <div><h3>Total Net</h3>
+            <p>Rs. <%= totals && totals.total_net ? parseFloat(totals.total_net).toFixed(2) : '0.00' %></p></div>
+        </div>
+    </div>
+
+    <% if (wallet && wallet.payout_status === 'pending') { %>
+    <div class="alert alert-success">
+        <i class="fas fa-clock"></i> Your payout request is pending since
+        <%= wallet.last_payout_date ? new Date(wallet.last_payout_date).toLocaleDateString() : 'N/A' %>.
+        Admin will approve it shortly.
+    </div>
+    <% } %>
+
+    <% if (wallet && wallet.balance > 0 && wallet.payout_status !== 'pending') { %>
+    <form action="/driver/payout" method="POST" class="card">
+        <div class="card-header"><h2>Request Payout</h2></div>
+        <div class="card-body">
+            <p>Request your current wallet balance as a payout. Once requested, the admin will approve it.</p>
+            <button type="submit" class="btn btn-primary">Request Payout</button>
+        </div>
+    </form>
+    <% } %>
+
+    <div class="card">
+        <div class="card-header"><h2>Earnings & Payout History</h2></div>
+        <% if (earnings.length === 0) { %>
+            <div class="empty-state"><p>No payout history yet.</p></div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ride #</th><th>City</th><th>Net</th>
+                    <th>Payout</th><th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% earnings.forEach(e => { %>
+                <tr>
+                    <td>#<%= e.ride_id %></td>
+                    <td><%= e.city %></td>
+                    <td>Rs. <%= parseFloat(e.net_amount).toFixed(2) %></td>
+                    <td><span class="badge badge-<%= e.payout_status %>"><%= e.payout_status %></span></td>
+                    <td><%= new Date(e.earned_at).toLocaleDateString() %></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>

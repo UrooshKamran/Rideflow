@@ -1,0 +1,150 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-user-circle"></i> My Profile</h1>
+        <a href="/driver/vehicles/add" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Vehicle
+        </a>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <!-- Profile Details -->
+    <div class="card">
+        <div class="card-header"><h2><i class="fas fa-id-card"></i> Driver Details</h2></div>
+        <div class="profile-grid">
+            <div class="profile-item">
+                <span class="profile-label">Full Name</span>
+                <span class="profile-value"><%= driver.full_name %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Email</span>
+                <span class="profile-value"><%= driver.email %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Phone</span>
+                <span class="profile-value"><%= driver.phone %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">CNIC</span>
+                <span class="profile-value"><%= driver.cnic %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">License Number</span>
+                <span class="profile-value"><%= driver.license_num %></span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Verification Status</span>
+                <span class="profile-value">
+                    <span class="badge badge-<%= driver.verify_status %>">
+                        <%= driver.verify_status %>
+                    </span>
+                </span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Availability</span>
+                <span class="profile-value">
+                    <span class="badge badge-<%= driver.avail_status %>">
+                        <%= driver.avail_status %>
+                    </span>
+                </span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Average Rating</span>
+                <span class="profile-value">
+                    ⭐ <%= parseFloat(driver.avg_rating).toFixed(1) %> / 5.0
+                </span>
+            </div>
+            <div class="profile-item">
+                <span class="profile-label">Total Trips Completed</span>
+                <span class="profile-value"><%= driver.total_trips %></span>
+            </div>
+        </div>
+
+        <% if (driver.verify_status === 'pending') { %>
+        <div class="alert alert-error" style="margin-top:1rem;">
+            <i class="fas fa-clock"></i>
+            Your driver profile is pending verification by admin. 
+            You cannot accept rides until verified.
+        </div>
+        <% } %>
+    </div>
+
+    <!-- Vehicles -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-car"></i> My Vehicles</h2>
+            <a href="/driver/vehicles/add" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i> Add Vehicle
+            </a>
+        </div>
+
+        <% if (vehicles.length === 0) { %>
+            <div class="empty-state">
+                <i class="fas fa-car"></i>
+                <p>No vehicles registered yet.</p>
+                <a href="/driver/vehicles/add" class="btn btn-primary">Register Your Vehicle</a>
+            </div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Make</th><th>Model</th><th>Year</th><th>Color</th>
+                    <th>License Plate</th><th>Type</th><th>Verification</th>
+                </tr>
+            </thead>
+            <tbody>
+            <% vehicles.forEach(v => { %>
+            <tr>
+                <td><%= v.make %></td>
+                <td><%= v.model %></td>
+                <td><%= v.year %></td>
+                <td><%= v.color %></td>
+                <td><strong><%= v.license_plate %></strong></td>
+                <td><span class="badge badge-<%= v.vehicle_type %>"><%= v.vehicle_type %></span></td>
+                <td>
+                    <span class="badge badge-<%= v.verify_status %>"><%= v.verify_status %></span>
+                    <% if (v.verify_status === 'pending') { %>
+                        <br/><small style="color:#64748b;">Awaiting admin approval</small>
+                    <% } else if (v.verify_status === 'verified') { %>
+                        <br/><small style="color:#10b981;">Ready for rides</small>
+                    <% } else { %>
+                        <br/><small style="color:#ef4444;">Contact admin</small>
+                    <% } %>
+                </td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+
+<style>
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+.profile-item {
+    display: flex;
+    flex-direction: column;
+    padding: .75rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+.profile-label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .3rem;
+}
+.profile-value {
+    font-size: 1rem;
+    color: #1e293b;
+    font-weight: 500;
+}
+</style>
+<%- include('../partials/footer') %>

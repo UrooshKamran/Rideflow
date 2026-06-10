@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-money-bill-wave"></i> Earnings</h1>
+        <% if (wallet && wallet.balance > 0) { %>
+        <form action="/driver/payout" method="POST">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Request Payout
+            </button>
+        </form>
+        <% } %>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <!-- Summary Cards -->
+    <div class="stats-grid">
+        <div class="stat-card stat-green">
+            <i class="fas fa-coins"></i>
+            <div><h3>Wallet Balance</h3>
+            <p>Rs. <%= wallet ? parseFloat(wallet.balance).toFixed(2) : '0.00' %></p></div>
+        </div>
+        <div class="stat-card stat-blue">
+            <i class="fas fa-chart-line"></i>
+            <div><h3>Total Gross</h3>
+            <p>Rs. <%= totals && totals.total_gross ? parseFloat(totals.total_gross).toFixed(2) : '0.00' %></p></div>
+        </div>
+        <div class="stat-card stat-orange">
+            <i class="fas fa-percentage"></i>
+            <div><h3>Total Commission</h3>
+            <p>Rs. <%= totals && totals.total_commission ? parseFloat(totals.total_commission).toFixed(2) : '0.00' %></p></div>
+        </div>
+        <div class="stat-card stat-purple">
+            <i class="fas fa-hand-holding-usd"></i>
+            <div><h3>Total Net Earned</h3>
+            <p>Rs. <%= totals && totals.total_net ? parseFloat(totals.total_net).toFixed(2) : '0.00' %></p></div>
+        </div>
+    </div>
+
+    <!-- Payout Status -->
+    <% if (wallet && wallet.payout_status === 'pending') { %>
+    <div class="alert alert-success">
+        <i class="fas fa-clock"></i> Payout requested on
+        <%= wallet.last_payout_date ? new Date(wallet.last_payout_date).toLocaleDateString() : 'N/A' %>.
+        Processing within 24 hours.
+    </div>
+    <% } %>
+
+    <!-- Earnings Table -->
+    <div class="card">
+        <div class="card-header"><h2>Earnings Breakdown</h2></div>
+        <% if (earnings.length === 0) { %>
+            <div class="empty-state"><p>No earnings yet. Complete rides to earn!</p></div>
+        <% } else { %>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ride #</th><th>City</th><th>Gross</th>
+                    <th>Commission (20%)</th><th>Net</th><th>Payout</th><th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% earnings.forEach(e => { %>
+                <tr>
+                    <td>#<%= e.ride_id %></td>
+                    <td><%= e.city %></td>
+                    <td>Rs. <%= parseFloat(e.gross_amount).toFixed(2) %></td>
+                    <td>Rs. <%= parseFloat(e.commission).toFixed(2) %></td>
+                    <td><strong>Rs. <%= parseFloat(e.net_amount).toFixed(2) %></strong></td>
+                    <td><span class="badge badge-<%= e.payout_status %>"><%= e.payout_status %></span></td>
+                    <td><%= new Date(e.earned_at).toLocaleDateString() %></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <% } %>
+    </div>
+</div>
+<%- include('../partials/footer') %>
