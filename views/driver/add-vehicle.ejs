@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-car"></i> Register a Vehicle</h1>
+        <a href="/driver/profile" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Profile
+        </a>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Vehicle Details</h2>
+        </div>
+        <div class="alert alert-success" style="margin-bottom:1rem;">
+            <i class="fas fa-info-circle"></i>
+            After registering, your vehicle will be reviewed by admin before it can be used for rides.
+        </div>
+        <form action="/driver/vehicles/add" method="POST" class="auth-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Make (Brand)</label>
+                    <input type="text" name="make" required placeholder="Toyota"/>
+                </div>
+                <div class="form-group">
+                    <label>Model</label>
+                    <input type="text" name="model" required placeholder="Corolla"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="number" name="year" required 
+                           min="2000" max="<%= new Date().getFullYear() %>" 
+                           placeholder="2022"/>
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <input type="text" name="color" required placeholder="White"/>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>License Plate</label>
+                    <input type="text" name="license_plate" required 
+                           placeholder="ABC-1234" 
+                           style="text-transform:uppercase;"/>
+                </div>
+                <div class="form-group">
+                    <label>Vehicle Type</label>
+                    <select name="vehicle_type" required>
+                        <option value="economy">🚗 Economy</option>
+                        <option value="premium">🚙 Premium</option>
+                        <option value="bike">🏍️ Bike</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">
+                <i class="fas fa-paper-plane"></i> Submit for Verification
+            </button>
+        </form>
+    </div>
+</div>
+<%- include('../partials/footer') %>
