@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>RideFlow — Register</title>
+    <link rel="stylesheet" href="/css/style.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body class="auth-body">
+<div class="auth-container auth-wide">
+    <div class="auth-brand"><i class="fas fa-car"></i> RideFlow</div>
+    <h2>Create Account</h2>
+    <%- include('partials/flash') %>
+    <form action="/auth/register" method="POST" class="auth-form" id="registerForm" novalidate>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name" id="full_name" required
+                       minlength="3" placeholder="Ali Hassan"/>
+                <small class="field-error" id="err_name"></small>
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select name="role" id="roleSelect" onchange="toggleDriverFields()">
+                    <option value="rider">Rider</option>
+                    <option value="driver">Driver</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" id="email" required placeholder="ali@example.com"/>
+                <small class="field-error" id="err_email"></small>
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone" id="phone" required placeholder="03001234567"
+                       maxlength="11"/>
+                <small class="field-error" id="err_phone"></small>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" id="password" required
+                   minlength="6" placeholder="Minimum 6 characters"/>
+            <small class="field-error" id="err_password"></small>
+        </div>
+
+        <div id="driverFields" class="driver-fields" style="display:none;">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>CNIC</label>
+                    <input type="text" name="cnic" id="cnic"
+                           placeholder="42201-1234567-1" maxlength="15"/>
+                    <small class="field-error" id="err_cnic"></small>
+                </div>
+                <div class="form-group">
+                    <label>License Number</label>
+                    <input type="text" name="license_num" id="license_num"
+                           placeholder="LHR-12345"/>
+                    <small class="field-error" id="err_license"></small>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+    </form>
+    <p class="auth-link">Already have an account? <a href="/auth/login">Login</a></p>
+</div>
+
+
+<script>
+function toggleDriverFields() {
+    const role = document.getElementById('roleSelect').value;
+    const df   = document.getElementById('driverFields');
+    df.style.display = role === 'driver' ? 'block' : 'none';
+    document.getElementById('cnic').required        = role === 'driver';
+    document.getElementById('license_num').required = role === 'driver';
+}
+
+function showError(id, msg) {
+    document.getElementById(id).textContent = msg;
+    document.getElementById(id).previousElementSibling.classList.add('invalid');
+    document.getElementById(id).previousElementSibling.classList.remove('valid');
+}
+function clearError(id) {
+    document.getElementById(id).textContent = '';
+    document.getElementById(id).previousElementSibling.classList.remove('invalid');
+    document.getElementById(id).previousElementSibling.classList.add('valid');
+}
+
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    let valid = true;
+
+    // Full name
+    const name = document.getElementById('full_name').value.trim();
+    if (name.length < 3) { showError('err_name', 'Name must be at least 3 characters.'); valid = false; }
+    else clearError('err_name');
+
+    // Email
+    const email = document.getElementById('email').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('err_email', 'Enter a valid email address.'); valid = false; }
+    else clearError('err_email');
+
+    // Phone
+    const phone = document.getElementById('phone').value.trim().replace(/[-\s]/g,'');
+    if (!/^03[0-9]{9}$/.test(phone)) { showError('err_phone', 'Enter a valid Pakistani number (e.g. 03001234567).'); valid = false; }
+    else clearError('err_phone');
+
+    // Password
+    const pass = document.getElementById('password').value;
+    if (pass.length < 6) { showError('err_password', 'Password must be at least 6 characters.'); valid = false; }
+    else clearError('err_password');
+
+    // Driver fields
+    const role = document.getElementById('roleSelect').value;
+    if (role === 'driver') {
+        const cnic = document.getElementById('cnic').value.trim();
+        if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) { showError('err_cnic', 'CNIC format: 42201-1234567-1'); valid = false; }
+        else clearError('err_cnic');
+
+        const lic = document.getElementById('license_num').value.trim();
+        if (lic.length < 5) { showError('err_license', 'Enter a valid license number.'); valid = false; }
+        else clearError('err_license');
+    }
+
+    if (!valid) e.preventDefault();
+});
+</script>
+</body>
+</html>
