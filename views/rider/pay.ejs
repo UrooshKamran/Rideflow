@@ -1,0 +1,116 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-credit-card"></i> Pay for Ride</h1>
+        <a href="/rider/history" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <!-- Ride Summary -->
+    <div class="card">
+        <div class="card-header"><h2><i class="fas fa-receipt"></i> Ride Summary</h2></div>
+        <table class="table">
+            <tr>
+                <td><strong>Ride #</strong></td>
+                <td>#<%= ride.ride_id %></td>
+            </tr>
+            <tr>
+                <td><strong>From</strong></td>
+                <td><%= ride.pickup_address %></td>
+            </tr>
+            <tr>
+                <td><strong>To</strong></td>
+                <td><%= ride.dropoff_address %></td>
+            </tr>
+            <tr>
+                <td><strong>Driver</strong></td>
+                <td><%= ride.driver_name || 'N/A' %></td>
+            </tr>
+            <tr>
+                <td><strong>Distance</strong></td>
+                <td><%= ride.distance ? ride.distance + ' km' : '—' %></td>
+            </tr>
+            <tr>
+                <td><strong>Duration</strong></td>
+                <td><%= ride.duration ? ride.duration + ' minutes' : '—' %></td>
+            </tr>
+            <tr>
+                <td><strong>Total Fare</strong></td>
+                <td><strong style="font-size:1.2rem;color:#4f46e5;">
+                    Rs. <%= parseFloat(ride.fare).toFixed(2) %>
+                </strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Payment Form -->
+    <div class="card">
+        <div class="card-header"><h2><i class="fas fa-money-bill-wave"></i> Payment Details</h2></div>
+        <form action="/rider/pay/<%= ride.ride_id %>" method="POST" class="auth-form" id="payForm">
+
+            <div class="form-group">
+                <label>Payment Method</label>
+                <select name="pay_method" required onchange="updateSummary(this.value)">
+                    <option value="cash">💵 Cash — Pay directly to driver</option>
+                    <option value="wallet">
+                        👛 Wallet — Balance: Rs. <%= wallet ? parseFloat(wallet.balance).toFixed(2) : '0.00' %>
+                    </option>
+                    <option value="card">💳 Credit / Debit Card</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Promo Code (Optional)</label>
+                <select name="promo_code" onchange="applyPromo(this.value)">
+                    <option value="">-- No Promo Code --</option>
+                    <% promos.forEach(p => { %>
+                        <option value="<%= p.code %>" data-pct="<%= p.discount_pct %>">
+                            <%= p.code %> — <%= p.discount_pct %>% off
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <!-- Live fare preview -->
+            <div class="card" style="background:#f8fafc;margin-bottom:1rem;">
+                <p style="margin-bottom:.5rem;color:#64748b;font-size:.85rem;">ORDER SUMMARY</p>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;">
+                    <span>Fare</span>
+                    <span>Rs. <%= parseFloat(ride.fare).toFixed(2) %></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;color:#10b981;" id="discountRow" style="display:none!important;">
+                    <span>Promo Discount</span>
+                    <span id="discountAmt">- Rs. 0.00</span>
+                </div>
+                <hr style="margin:.5rem 0;"/>
+                <div style="display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem;">
+                    <span>Total</span>
+                    <span id="totalAmt">Rs. <%= parseFloat(ride.fare).toFixed(2) %></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" style="font-size:1rem;padding:.75rem;">
+                <i class="fas fa-lock"></i> Confirm & Pay
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+const baseFare = <%= parseFloat(ride.fare) %>;
+
+function applyPromo(code) {
+    const select   = document.querySelector('select[name="promo_code"]');
+    const option   = select.options[select.selectedIndex];
+    const pct      = parseFloat(option.dataset.pct || 0);
+    const discount = Math.round((baseFare * pct / 100) * 100) / 100;
+    const total    = Math.max(0, baseFare - discount);
+
+    document.getElementById('discountRow').style.display = pct > 0 ? 'flex' : 'none';
+    document.getElementById('discountAmt').textContent   = `- Rs. ${discount.toFixed(2)}`;
+    document.getElementById('totalAmt').textContent      = `Rs. ${total.toFixed(2)}`;
+}
+</script>
+<%- include('../partials/footer') %>

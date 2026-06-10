@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-wallet"></i> My Wallet</h1>
+    </div>
+    <%- include('../partials/flash') %>
+    <div class="stats-grid">
+        <div class="stat-card stat-blue">
+            <i class="fas fa-coins"></i>
+            <div>
+                <h3>Current Balance</h3>
+                <p>Rs. <%= wallet ? parseFloat(wallet.balance).toFixed(2) : '0.00' %></p>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <h2>Top Up Wallet</h2>
+        <form action="/rider/wallet/topup" method="POST" class="auth-form">
+            <div class="form-group">
+                <label>Amount (Rs.)</label>
+                <input type="number" name="amount" min="100" max="50000" required placeholder="500"/>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Funds</button>
+        </form>
+    </div>
+</div>
+<%- include('../partials/footer') %>
