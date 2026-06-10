@@ -1,0 +1,127 @@
+<%- include('../partials/header') %>
+<div class="container">
+    <div class="page-header">
+        <h1><i class="fas fa-chart-bar"></i> Admin Dashboard</h1>
+        <span class="badge badge-completed">Admin Panel</span>
+    </div>
+    <%- include('../partials/flash') %>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card stat-blue">
+            <i class="fas fa-users"></i>
+            <div><h3>Total Users</h3><p><%= stats.totalUsers %></p></div>
+        </div>
+        <div class="stat-card stat-green">
+            <i class="fas fa-id-card"></i>
+            <div><h3>Total Drivers</h3><p><%= stats.totalDrivers %></p></div>
+        </div>
+        <div class="stat-card stat-orange">
+            <i class="fas fa-car"></i>
+            <div><h3>Total Rides</h3><p><%= stats.totalRides %></p></div>
+        </div>
+        <div class="stat-card stat-purple">
+            <i class="fas fa-money-bill"></i>
+            <div><h3>Total Revenue</h3><p>Rs. <%= parseFloat(stats.totalRevenue || 0).toFixed(2) %></p></div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-grid">
+        <div class="card">
+            <div class="card-header"><h2>Revenue by City</h2></div>
+            <canvas id="cityChart" height="250"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>Revenue by Payment Method</h2></div>
+            <canvas id="methodChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <!-- Low Rated Drivers Alert -->
+    <% if (lowRatedDrivers.length > 0) { %>
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-exclamation-triangle text-red"></i> Flagged Drivers (Rating &lt; 3.5)</h2>
+        </div>
+        <table class="table">
+            <thead><tr><th>Driver</th><th>Rating</th><th>Verify Status</th><th>Availability</th><th>Action</th></tr></thead>
+            <tbody>
+            <% lowRatedDrivers.forEach(d => { %>
+            <tr>
+                <td><%= d.full_name %></td>
+                <td><span class="text-red"><%= parseFloat(d.avg_rating).toFixed(1) %> ⭐</span></td>
+                <td><span class="badge badge-<%= d.verify_status %>"><%= d.verify_status %></span></td>
+                <td><span class="badge badge-<%= d.avail_status %>"><%= d.avail_status %></span></td>
+                <td>
+                    <form action="/admin/drivers/<%= d.driver_id %>/verify" method="POST" style="display:inline;">
+                        <input type="hidden" name="status" value="rejected"/>
+                        <button class="btn btn-sm btn-danger">Suspend</button>
+                    </form>
+                </td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    </div>
+    <% } %>
+
+    <!-- Recent Rides -->
+    <div class="card">
+        <div class="card-header">
+            <h2>Recent Rides</h2>
+            <a href="/admin/reports" class="btn btn-sm">Full Reports</a>
+        </div>
+        <table class="table">
+            <thead><tr><th>#</th><th>Rider</th><th>Driver</th><th>City</th><th>Status</th><th>Fare</th><th>Date</th></tr></thead>
+            <tbody>
+            <% recentRides.forEach(r => { %>
+            <tr>
+                <td>#<%= r.ride_id %></td>
+                <td><%= r.rider_name %></td>
+                <td><%= r.driver_name || 'Unassigned' %></td>
+                <td><%= r.city %></td>
+                <td><span class="badge badge-<%= r.status %>"><%= r.status %></span></td>
+                <td>Rs. <%= r.fare ? parseFloat(r.fare).toFixed(2) : '—' %></td>
+                <td><%= new Date(r.created_at).toLocaleDateString() %></td>
+            </tr>
+            <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Revenue by City Chart
+const cityLabels = <%- JSON.stringify(revenueByCity.map(r => r.city)) %>;
+const cityData   = <%- JSON.stringify(revenueByCity.map(r => parseFloat(r.revenue || 0).toFixed(2))) %>;
+new Chart(document.getElementById('cityChart'), {
+    type: 'bar',
+    data: {
+        labels: cityLabels,
+        datasets: [{
+            label: 'Revenue (Rs.)',
+            data: cityData,
+            backgroundColor: 'rgba(79,70,229,0.7)',
+            borderRadius: 6
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+// Revenue by Payment Method Chart
+const methodLabels = <%- JSON.stringify(revenueByMethod.map(r => r.pay_method)) %>;
+const methodData   = <%- JSON.stringify(revenueByMethod.map(r => parseFloat(r.total || 0).toFixed(2))) %>;
+new Chart(document.getElementById('methodChart'), {
+    type: 'doughnut',
+    data: {
+        labels: methodLabels,
+        datasets: [{
+            data: methodData,
+            backgroundColor: ['#4f46e5','#10b981','#f59e0b']
+        }]
+    },
+    options: { responsive: true }
+});
+</script>
+<%- include('../partials/footer') %>
